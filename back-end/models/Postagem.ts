@@ -1,17 +1,18 @@
 import mongoose, { Document, Schema } from 'mongoose';
-//models/Post.js
+
+export interface IComentario {
+  body: string;
+  date: Date;
+}
 
 export interface IPostagem extends Document {
   titulo: string;
   conteudo: string;
   autor: string;
   data: Date;
+  curtidas: number;
   comentarios: IComentario[];
-}
-
-export interface IComentario {
-  body: string;
-  date: Date;
+  compartilhadaDe?: mongoose.Schema.Types.ObjectId; // NOVO CAMPO
 }
 
 const PostagemSchema = new Schema({
@@ -48,6 +49,11 @@ const PostagemSchema = new Schema({
       },
     },
   ],
+  compartilhadaDe: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Postagem',
+    default: null,
+  },
 });
 
 export const Postagem = mongoose.model<IPostagem>('Postagem', PostagemSchema);

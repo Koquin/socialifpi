@@ -13,43 +13,55 @@ document.addEventListener('DOMContentLoaded', () => {
     const endpointLogin = apiUrl + '/login';
 
     // LISTAR POSTAGENS
-    async function listarPostagens() {
-        try {
-            const response = await fetch(apiUrl);
-            const postagens = await response.json();
-            const postagensElement = getById('postagens');
-            if (postagensElement) {
-                postagensElement.innerHTML = '';
-                postagens.forEach(postagem => {
-                    const article = document.createElement('article');
+async function listarPostagens() {
+    try {
+        const response = await fetch(apiUrl);
+        const postagens = await response.json();
+        const postagensElement = getById('postagens');
+        if (postagensElement) {
+            postagensElement.innerHTML = '';
+            postagens.forEach(postagem => {
+                const article = document.createElement('article');
 
-                    const titulo = document.createElement('h2');
-                    titulo.textContent = postagem.titulo;
+                const titulo = document.createElement('h2');
+                titulo.textContent = postagem.titulo;
 
-                    const conteudo = document.createElement('p');
-                    conteudo.textContent = postagem.conteudo;
+                if (postagem.compartilhadaDe) {
+                    const aviso = document.createElement('p');
+                    aviso.textContent = '🔁 Postagem compartilhada';
+                    aviso.className = 'aviso-compartilhada'
+                    article.appendChild(aviso);
+                }
 
-                    const data = document.createElement('p');
-                    data.className = 'data';
-                    data.textContent = new Date(postagem.data).toLocaleDateString();
+                const conteudo = document.createElement('p');
+                conteudo.textContent = postagem.conteudo;
 
-                    const curtidas = document.createElement('p');
-                    curtidas.textContent = `Curtidas: ${postagem.curtidas}`;
-                    curtidas.style.fontWeight = 'bold';
+                const data = document.createElement('p');
+                data.className = 'data';
+                data.textContent = new Date(postagem.data).toLocaleDateString();
 
-                    const botaoCurtir = document.createElement('button');
-                    botaoCurtir.textContent = 'Curtir';
-                    botaoCurtir.addEventListener('click', () => curtirPostagem(postagem.id, curtidas));
+                const curtidas = document.createElement('p');
+                curtidas.textContent = `Curtidas: ${postagem.curtidas}`;
+                curtidas.style.fontWeight = 'bold';
 
-                    article.append(titulo, conteudo, data, curtidas, botaoCurtir);
-                    postagensElement.appendChild(article);
-                });
-            }
-        } catch (error) {
-            console.error('Erro ao listar postagens:', error);
-            alert('Erro ao carregar as postagens. Tente novamente mais tarde.');
+                const botaoCurtir = document.createElement('button');
+                botaoCurtir.textContent = 'Curtir';
+                botaoCurtir.addEventListener('click', () => curtirPostagem(postagem._id, curtidas));
+
+                //Botão de compartilhar
+                const botaoCompartilhar = document.createElement('button');
+                botaoCompartilhar.textContent = 'Compartilhar';
+                botaoCompartilhar.addEventListener('click', () => compartilharPostagem(postagem._id));
+
+                article.append(titulo, conteudo, data, curtidas, botaoCurtir, botaoCompartilhar);
+                postagensElement.appendChild(article);
+            });
         }
+    } catch (error) {
+        console.error('Erro ao listar postagens:', error);
+        alert('Erro ao carregar as postagens. Tente novamente mais tarde.');
     }
+}
 
     // CURTIR POSTAGEM
     async function curtirPostagem(id, curtidasElement) {
@@ -133,12 +145,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ usuario, senha })
             });
 
-            if (!resposta.ok) {
-                return false;
-            }
+            if (!resposta.ok) return false;
 
             const dados = await resposta.json();
-            return dados.autenticado === true;
+
+            if (dados.autenticado === true && dados.idUsuario) {
+                localStorage.setItem('idUsuario', dados.idUsuario); // É FUNDAMENTAL o login de usuário retornar
+                return true;
+            }
+
+            return false;
 
         } catch (erro) {
             console.error('Erro ao fazer login:', erro);
@@ -146,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
     }
+
 
     // AUTENTICAÇÃO (LOGIN + TROCA DE FORMULÁRIOS)
     const loginForm = getById('loginForm');
@@ -204,5 +221,35 @@ document.addEventListener('DOMContentLoaded', () => {
     if (botaoNovaPostagem) {
         botaoNovaPostagem.addEventListener('click', incluirPostagem);
     }
+
+    
+    // COMPARTILHAR POSTAGEM
+    async function compartilharPostagem(idPostagem) {
+        const idUsuario = localStorage.getItem("idUsuario");
+        if (!idUsuario) {
+            alert("Você precisa estar logado para compartilhar.");
+            return;
+        }
+
+        try {
+            const resposta = await fetch(`${apiUrl}/compartilhar/${idPostagem}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idUsuario })
+            });
+
+            if (!resposta.ok) {
+                throw new Error('Erro ao compartilhar postagem');
+            }
+
+            alert('Postagem compartilhada com sucesso!');
+            await listarPostagens();
+
+        } catch (erro) {
+            console.error('Erro ao compartilhar:', erro);
+            alert('Erro ao compartilhar a postagem. Tente novamente.');
+        }
+    }
+
 
 });

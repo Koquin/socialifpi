@@ -1,29 +1,45 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Postagem = void 0;
-class Postagem {
-    constructor(id, titulo, conteudo, data, curtidas) {
-        this.id = id;
-        this.titulo = titulo;
-        this.conteudo = conteudo;
-        this.data = data;
-        this.curtidas = curtidas;
-    }
-    getId() {
-        return this.id;
-    }
-    getTitulo() {
-        return this.titulo;
-    }
-    getConteudo() {
-        return this.conteudo;
-    }
-    getData() {
-        return this.data;
-    }
-    getCurtidas() {
-        return this.curtidas;
-    }
-}
-exports.Postagem = Postagem;
-//# sourceMappingURL=Postagem.js.map
+var mongoose_1 = require("mongoose");
+var PostagemSchema = new mongoose_1.Schema({
+    titulo: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    conteudo: {
+        type: String,
+        required: true,
+    },
+    autor: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'Usuario',
+        required: true,
+    },
+    data: {
+        type: Date,
+        required: true,
+        default: Date.now,
+    },
+    curtidas: {
+        type: Number,
+        default: 0,
+        required: true,
+    },
+    comentarios: [
+        {
+            body: String,
+            date: {
+                type: Date,
+                default: Date.now,
+            },
+        },
+    ],
+    compartilhadaDe: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'Postagem',
+        default: null,
+    },
+});
+exports.Postagem = mongoose_1.default.model('Postagem', PostagemSchema);

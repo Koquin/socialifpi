@@ -171,6 +171,24 @@ section#postagens article button {
 section#postagens article button:hover {
     background-color: var(--cor-button-hover);
 }
+/*compartilhamento*/
+
+section#postagens article p.aviso-compartilhada {
+    font-style: italic;
+    color: gray; 
+    font-size: 0.9em; 
+    margin-bottom: 5px; 
+    text-align: left; 
+}
+
+section#postagens article.compartilhada {
+    border-left: 5px solid var(--cor-hover);
+    padding-left: 15px; 
+}
+
+section#postagens article button {
+    margin-right: 10px; 
+}
 
 /* FOOTER */
 footer {

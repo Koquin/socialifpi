@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var express_1 = require("express");
+var postagemController = require("../controller/postagemController");
+var router = (0, express_1.Router)();
+router.get('/', postagemController.getAllPosts);
+router.get('/:id', postagemController.getPostById);
+router.post('/', postagemController.createPost);
+router.put('/:id', postagemController.updatePost);
+router.delete('/:id', postagemController.deletePost);
+router.post('/compartilhar/:id', postagemController.compartilharPostagem);
+exports.default = router;

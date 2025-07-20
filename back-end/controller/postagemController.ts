@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { ICreatePostagemDto, IUpdatePostagemDto } from '../repositories/postagemRepository';
 import * as postagemRepository from '../repositories/postagemRepository';
+import { Postagem } from '../models/Postagem';
 
 // GET /postagens
 export const getAllPosts = async (req: Request, res: Response) => {
@@ -60,5 +61,38 @@ export const deletePost = async (req: Request, res: Response) => {
         res.status(200).json({ message: 'Postagem removida com sucesso' });
     } catch (error) {
         res.status(500).json({ message: 'Erro ao remover postagem', error });
+    }
+};
+
+// POST /compartilhar/:id
+export const compartilharPostagem = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params; // ID da postagem original
+        const { idUsuario } = req.body; // ID do usuário que está compartilhando
+
+        if (!idUsuario) {
+            return res.status(400).json({ mensagem: 'ID do usuário é obrigatório.' });
+        }
+
+
+        const original = await Postagem.findById(id);
+        if (!original) {
+            return res.status(404).json({ mensagem: 'Postagem original não encontrada.' });
+        }
+
+        const origem = original.compartilhadaDe || original._id;
+
+        const novaPostagem = new Postagem({
+            titulo: original.titulo,
+            conteudo: original.conteudo,
+            autor: idUsuario,
+            compartilhadaDe: origem,
+        });
+
+        await novaPostagem.save();
+
+        res.status(201).json({ mensagem: 'Postagem compartilhada com sucesso!', novaPostagem });
+    } catch (erro) {
+        res.status(500).json({ erro: 'Erro ao compartilhar postagem.' });
     }
 };
